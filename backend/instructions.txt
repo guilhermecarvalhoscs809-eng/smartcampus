@@ -1,0 +1,84 @@
+# Arquitetura e Regras de Desenvolvimento do Backend
+
+## 1. Estrutura do Backend
+
+A estrutura definida para o backend será a seguinte:
+
+text
+projeto/
+│
+├── backend/    
+│   ├── auth.py             # Login, sessões e permissões (Responsável: Lider)
+│   ├── operacoes.py        # Funções de operações (Responsável: Martim)
+│   ├── database.py         # Ligação à base de dados SQLite
+│   ├── routes/
+│   │   ├── equipamentos.py
+│   │   └── utilizadores.py
+
+
+Esta estrutura deverá ser respeitada durante o desenvolvimento. Nenhum ficheiro ou diretório deverá ser alterado, removido ou acrescentado sem necessidade técnica devidamente justificada e aprovação da equipa.
+
+## 2. Responsabilidades
+
+### 2.1. José — Backend e Flask
+
+Responsável pelo desenvolvimento e funcionamento da estrutura principal do backend.
+
+- Criar e configurar a estrutura Flask.
+- Documentar e explicar como iniciar o servidor.
+- Implementar o sistema de login e gestão de sessões.
+- Implementar a verificação de permissões dos utilizadores.
+- Analisar os ficheiros JavaScript do frontend para identificar as necessidades de comunicação.
+- Definir a lógica, os parâmetros e as variáveis necessárias para cada função.
+- Comunicar ao Martim as especificações das funções que deverão ser desenvolvidas.
+- Integrar as funções Python desenvolvidas pelo Martim no Flask.
+- Criar e gerir as rotas da API.
+- Garantir a comunicação entre o backend e o frontend.
+- Corrigir eventuais problemas relacionados com a implementação do Flask e com a integração.
+
+### 2.2. Martim — Desenvolvimento das Funções Python
+
+Responsável pelo desenvolvimento das funções Python relacionadas com as operações da aplicação.
+
+- Desenvolver as funções Python responsáveis pelas operações sobre a base de dados.
+- Criar funções para atribuir e devolver equipamentos.
+- Criar funções para registar avarias e transferências, respeitando as diferentes etapas dos processos.
+- Desenvolver as funções de acordo com as especificações fornecidas.
+- Garantir que as funções são compatíveis com o Flask e permitem uma integração clara e direta.
+- Comunicar qualquer dificuldade ou necessidade de alteração das especificações.
+- Corrigir os problemas identificados durante os testes.
+
+### 2.3. Alex — Testagem e Identificação de Erros
+
+Responsável pela testagem das funções desenvolvidas pelo Martim.
+
+- Testar obrigatoriamente todas as funções Python criadas pelo Martim.
+- Verificar se os resultados correspondem ao comportamento esperado.
+- Testar operações válidas e inválidas.
+- Identificar erros e situações inesperadas.
+- Comunicar os erros de forma simples, direta e compreensível.
+- Explicar que ação, dados ou condições provocaram cada erro.
+- Indicar os passos necessários para reproduzir os problemas.
+- Voltar a testar as funções depois de serem corrigidas.
+
+*Nota:* O Alex é responsável pela testagem das funções, não pelo desenvolvimento do Flask ou pela implementação da lógica das operações.
+
+### 2.4. Líder de Grupo
+
+Responsável pela coordenação e definição das necessidades funcionais do projeto.
+
+- Definir, em conjunto com a equipa, as funcionalidades necessárias.
+- Analisar os ficheiros JavaScript do frontend e a estrutura da base de dados.
+- Identificar operações e funções necessárias para o funcionamento do projeto.
+- Comunicar ao responsável pelo Flask e ao Martim as funcionalidades que deverão ser desenvolvidas.
+- Coordenar a distribuição de tarefas e prioridades.
+
+## 3. Definição e Especificação das Funções
+
+Todas as funções desenvolvidas pelo Martim deverão seguir as necessidades reais do frontend e as especificações definidas pelo responsável pelo Flask.
+
+O desenvolvimento deverá respeitar as seguintes etapas:
+
+*1. Análise do frontend*
+
+O responsável pelo Flask deverá analisar os ficheiros JavaScript e identificar que informações cada ecrã necess…

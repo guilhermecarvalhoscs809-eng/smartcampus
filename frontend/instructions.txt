@@ -1,0 +1,13 @@
+templates/
+        base.html       cabeçalho e menu comuns
+        acessos/        autenticação e utilizadores
+        inventario/     consulta e registo de equipamento
+        operacoes/      atribuição, devolução, avarias, transferência
+        supervisao/     eventos, avisos e dashboard
+        
+static/
+        css/            estilo.css e responsivo.css
+        js/             JavaScript necessário
+        imagens/        logótipo e outros recursos aprovados
+
+caso queria alterar, entre em contato com o guizão.

@@ -1,0 +1,86 @@
+Objetivos da base de dados
+
+A base de dados deverá:
+
+1. Armazenar todos os equipamentos registados.
+2. Identificar a localização atual de cada equipamento.
+3. Gerir salas e armários.
+4. Registar as assignações e devoluções dos equipamentos.
+5. Guardar o histórico completo de utilização.
+6. Registar avarias e respetivas resoluções.
+7. Controlar transferências entre salas e armários.
+8. Identificar o utilizador responsável por cada operação.
+9. Armazenar eventos que possam originar avisos.
+10. Garantir a integridade e a segurança dos dados.
+
+====================================================================================================================================
+
+
+
+
+1. Miguel — Modelação de dados
+Responsabilidades:
+- Criar o modelo de dados.
+- Identificar as entidades, atributos e relações.
+- Elaborar o Diagrama Entidade-Relacionamento (DER).
+- Definir a estrutura dos logs.
+- Garantir que os logs guardam a data, o utilizador, a operação e a respetiva descrição.
+
+Entregáveis:
+- Diagrama Entidade-Relacionamento.
+- Modelo relacional.
+- Estrutura e implementação dos logs. (logs.py)
+
+
+====================================================================================================================================
+
+
+2. Adelino — Criação da base de dados
+Responsabilidades:
+- Criar as tabelas da base de dados de acordo com o modelo definido.
+- Implementar as chaves primárias (PK) e estrangeiras (FK).
+- Definir os tipos de dados e as restrições.
+- Inserir dados fictícios para testar o funcionamento inicial.
+- Garantir que as relações entre as tabelas estão corretas.
+
+Entregáveis:
+- Ficheiro SQL de criação das tabelas. (create.py)
+- Ficheiro SQL com dados fictícios (insert.py).
+- Base de dados inicial funcional.
+
+
+====================================================================================================================================
+
+
+3. Sorin — Testes e métricas
+Responsabilidades:
+- Testar o funcionamento da base de dados.
+- Verificar se as relações e restrições funcionam corretamente.
+- Identificar e corrigir possíveis erros.
+- Escolher as métricas relevantes para o SmartCampus.
+- Criar consultas SQL para calcular as métricas. (metrics.py)
+- Garantir que os resultados podem ser utilizados no dashboard.
+
+
+
+====================================================================================================================================
+
+4. Guilherme - Gerenciamento de equipa 
+Responsabilidades:
+- Garantir uma base de dados Funcional e organizada.
+- Documentar as alteraçoes.
+- Gerenciar Git, Github e ficheiros.
+
+====================================================================================================================================
+
+
+Dependências entre equipa
+Miguel → Adelino → Sorin 
+
+
+====================================================================================================================================
+
+
+Gostaria que todas as alteraçoes fossem relatadas em report.txt
+
+Codigo moral: Se não souber resolver, SE VIRA.

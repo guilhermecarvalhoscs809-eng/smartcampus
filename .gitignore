@@ -1,0 +1,6 @@
+# Bases de dados locais
+*.db
+
+# Configurações privadas/passwords
+.env
+.env.*
