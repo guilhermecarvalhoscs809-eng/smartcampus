@@ -1,0 +1,43 @@
+INVENTARIO DA BASE DE DADOS USADA NO RASCUNHO SMARTCAMPUS V1
+
+Este ficheiro descreve os elementos de base de dados que o rascunho atual usa.
+Nao sao dependencias de producao nem substituem o modelo relacional que a
+equipa de base de dados deve desenhar e aprovar.
+
+1. SQLite
+Ficheiro local: database\smartcampus-demo.sqlite3
+Runtime: modulo sqlite3 incluido no Python (nao precisa de servidor nem pacote).
+Esquema: database\schema.sql
+Inicializacao e acesso: backend\store.py
+Dados iniciais: frontend\static\js\dados-demo.js (exemplos ficticios).
+
+2. Tabelas SQLite
+- records: colecoes JSON salas, armarios, equipamentos, utilizadores,
+  destinatarios, atribuicoes, avarias, transferencias, eventos e logs.
+- credentials: identificador do utilizador, salt e hash PBKDF2-SHA256 da
+  password. O texto da password nao e guardado.
+- sessions: sessao, utilizador, token CSRF e prazo de validade.
+
+3. Indices e validacoes no esquema
+- Chave primaria composta (collection, id) em records.
+- Email unico (sem diferenciar maiusculas) nas contas.
+- Codigo e numero de serie unicos nos equipamentos.
+- Apenas uma atribuicao sem data de devolucao por equipamento.
+- JSON valido e lista de colecoes permitidas.
+
+4. Persistencia e transacoes
+O backend le os registos, aplica as regras e grava os registos e logs dentro de
+uma transacao SQLite. O ficheiro da BD e criado automaticamente no primeiro
+arranque do backend e fica nesta pasta.
+
+5. Contas demo
+As contas de teste documentadas em ..\logins.txt usam a password comum
+demo1234 no rascunho. A BD guarda apenas hashes com salt. Nao utilizar contas
+ou dados reais, nao publicar nem enviar smartcampus-demo.sqlite3.
+
+TRABALHO PARA A EQUIPA DE BD
+O modelo atual e intencionalmente simples e guarda os objetos de negocio como
+JSON; nao implementa todas as chaves estrangeiras do modelo final. Desenhar e
+normalizar as entidades e relacoes, definir migracoes, politicas de retencao
+e backups, e acordar os campos com a equipa de backend. Preservar historico,
+integridade de atribuicoes e registo atomico de auditoria.

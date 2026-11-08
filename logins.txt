@@ -1,0 +1,5 @@
+Contas fictícias do protótipo (a palavra-passe é demo1234):
+
+Professor: Antonio.correia@etpm.pt
+Professor: carlos.demo@etpm.pt
+Administrador: admin.demo@etpm.pt

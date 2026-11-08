@@ -1,0 +1,181 @@
+SMARTCAMPUS V1 - REGRAS UPDATED
+Versao consolidada a partir das regras atualizadas de 5 de novembro de 2026.
+
+1. OBJETIVO E PERFIS
+
+O SmartCampus gere equipamentos, salas, armarios, atribuicoes, devolucoes,
+avarias, transferencias e auditoria.
+
+Existem dois perfis de acesso: Professor e Administrador. Alunos nao entram
+no sistema nem recebem credenciais. Podem ser destinatarios de equipamento,
+se essa funcionalidade for mantida.
+
+O frontend atual e uma demonstracao. As regras de permissao devem ser
+implementadas e verificadas no backend quando este for desenvolvido.
+
+2. AUTENTICACAO E CONTAS
+
+- Uma conta de acesso usa um email do dominio exato etpm.pt.
+- Remover espacos exteriores ao email e comparar sem diferenciar maiusculas.
+- Um email valido, por si so, nao cria conta nem concede privilegios.
+- Apenas contas previamente criadas, ativas e com credenciais validas entram.
+- O perfil e obtido da conta no servidor; o utilizador nao o escolhe no login.
+- Contas nao sao apagadas. A desativacao preserva a identidade e o historico.
+- O Professor nao pode criar, alterar, desativar ou reativar contas.
+- A sessao deve terminar no servidor; uma sessao terminada nao pode ser
+  recuperada usando o botao Voltar do navegador.
+- Nunca guardar passwords, tokens de sessao ou segredos nos logs.
+
+3. PERMISSOES
+
+Professor:
+- Consultar equipamentos e localizacoes.
+- Fazer atribuicoes e registar devolucoes.
+- Registar avarias e transferencias de equipamentos.
+- Nao administrar contas nem apagar registos.
+- A consulta de historico global, eventos e auditoria nao e permitida nesta
+  versao do prototipo.
+
+Administrador:
+- Todas as operacoes do Professor.
+- Administrar fichas de equipamento, salas, armarios e contas.
+- Consultar historico global, eventos e logs de auditoria.
+- Remover um log da lista normal apenas atraves de remocao logica; o original
+  e preservado e a remocao gera uma nova entrada protegida.
+
+DECISOES ADOTADAS NO PROTOTIPO, AINDA A VALIDAR COM O DOCENTE:
+- Apenas o Administrador cria/altera fichas, salas e armarios.
+- Apenas o Administrador transfere armarios.
+- O Administrador pode reativar contas.
+- O email da conta e imutavel depois da criacao.
+- Nao se pode desativar a propria conta nem retirar os privilegios do ultimo
+  Administrador ativo.
+- Nenhum perfil apaga fisicamente contas, equipamentos, salas ou armarios.
+- A saida da Sala de Reparacao exige confirmacao de funcionamento e destino.
+- Antes de registar avaria ou transferir equipamento em utilizacao, deve ser
+  registada a devolucao; a atribuicao nao pode ser terminada silenciosamente.
+
+Estas escolhas tornam o prototipo consistente, mas propostas dependem de
+validacao do docente antes de serem tratadas como politica definitiva.
+
+4. EQUIPAMENTOS E LOCALIZACOES
+
+- Cada equipamento esta numa sala ou num armario, nunca em dois locais.
+- Cada armario pertence a uma sala; a sala do armario determina a localizacao
+  fisica dos equipamentos associados.
+- Codigo e numero de serie do equipamento devem ser unicos.
+- Uma transferencia exige destino valido, diferente da origem, e regista
+  equipamento, origem, destino, autor e data.
+- Uma transferencia normal nao altera automaticamente o estado do equipamento.
+- Um armario transferido leva consigo a localizacao dos equipamentos que
+  permanecem associados. Registar quais os equipamentos afetados.
+- Nao permitir transferencias com utilizacao ativa.
+
+5. AVARIAS E SALA DE REPARACAO
+
+- Nao existe modulo de reparacoes nem registo de trabalhos de reparacao.
+- Ao comunicar avaria, exigir uma descricao e encaminhar o equipamento para a
+  Sala de Reparacao.
+- Numa operacao atomica, mudar o estado para Avariado, retirar a associacao ao
+  armario quando aplicavel, atualizar a localizacao e registar avaria e
+  movimento.
+- A Sala de Reparacao tem de existir. Se nao existir, a operacao falha por
+  completo e apresenta uma mensagem clara.
+- Se o equipamento ja estiver na Sala de Reparacao, nao criar uma transferencia
+  ficticia entre a mesma origem e destino.
+- Uma repeticao nao pode duplicar avarias, eventos ou transferencias.
+- Para retirar equipamento da Sala de Reparacao, exigir escolha explicita da
+  sala de destino. Um armario escolhido tem de pertencer a essa sala.
+- O prototipo exige confirmacao de que o equipamento esta operacional para
+  sair da Sala de Reparacao; ao sair, muda o estado para Em funcionamento.
+
+6. ATRIBUICOES E DEVOLUCOES
+
+- Atribuir apenas equipamento disponivel e operacional a um destinatario
+  valido; registar data, destinatario e autor da atribuicao.
+- Um equipamento nao pode ter duas atribuicoes ativas.
+- A atribuicao nao altera a localizacao fisica.
+- Registar a devolucao com data e autor, que podem ser diferentes dos da
+  atribuicao.
+- A data de devolucao nao pode anteceder o inicio da atribuicao.
+- Preservar o historico apos a devolucao.
+
+7. EVENTOS E AUDITORIA
+
+- Cada operacao concluida gera evento com identificador, data/hora, autor e
+  objeto afetado.
+- Alteracoes de estado e localizacao guardam valores anteriores e novos.
+- A auditoria regista logins/logouts, recusas, consultas e operacoes relevantes.
+- Uma tentativa sem autenticacao nao identifica uma pessoa apenas pelo email
+  que esta tenha escrito. Nao registar passwords nem tokens.
+- Em producao, o autor e a hora oficial sao determinados pelo servidor.
+- Gravacao de dados e log relacionado devem ocorrer na mesma transacao. Se a
+  auditoria falhar, nao apresentar a alteracao como concluida.
+- Logs sao acrescentados e nao editados. Logs de login/logout, recusas e
+  remocoes sao protegidos.
+- Remocao logica exige motivo, preserva o log original e cria novo registo
+  protegido com o autor, data, motivo e referencia ao original. Nao existe
+  apagamento fisico de logs pela interface.
+- O armazenamento local da demonstracao pode ser alterado ou apagado; nao e
+  uma auditoria resistente a manipulacao nem armazenamento de producao.
+
+8. RESPONSABILIDADE TECNICA
+
+- O frontend mostra apenas as acoes permitidas e mensagens claras, mas nao e
+  uma barreira de seguranca.
+- O backend valida permissao e dados em cada pedido, inclusive pedidos diretos.
+- A identidade e perfil sao derivados da sessao autenticada, nunca do browser.
+- A base de dados preserva relacoes, unicidade, autor e historico.
+- Usar transacoes para evitar estado parcial, concorrencia inconsistente e
+  atribuicoes duplicadas.
+- As equipas devem acordar campos, identificadores, estados, formatos de data
+  e respostas de erro antes da integracao.
+- Interpretar horas locais de operacao no fuso Europe/Lisbon e considerar
+  mudancas de hora; usar a hora do servidor para logs.
+
+9. CENARIOS MINIMOS DE TESTE
+
+- Conta ETPM ativa com credenciais corretas entra; email externo, inexistente,
+  conta inativa ou credencial errada sao recusados.
+- Aluno nao recebe login nem perfil de acesso.
+- Professor nao administra contas nem apaga registos, mesmo por pedido direto.
+- Conta desativada nao entra e continua identificada no historico.
+- Avaria atualiza estado, localizacao e auditoria sem gravacoes parciais.
+- Saida da Sala de Reparacao sem destino ou com armario de outra sala falha.
+- Transferencia para a origem atual e recusada.
+- Segunda atribuicao ativa e devolucao anterior a atribuicao sao recusadas.
+- Repetir uma operacao nao duplica movimentos.
+- Remover log mantem o original e cria uma entrada protegida.
+- Sair invalida a sessao; paginas protegidas voltam a exigir autenticacao.
+
+10. CONSULTA DE LOCALIZACOES E PESSOAS
+
+- Equipamentos, salas e armarios estao reunidos na pagina Equipamentos, com
+  separadores para alternar entre as tres listas.
+- Professor e Administrador podem consultar fichas de equipamento, sala e
+  armario. Consultar e diferente de editar; a permissao de edicao continua a
+  ser exclusiva do Administrador.
+- A ficha de um equipamento mostra a sua sala e, quando aplicavel, o armario;
+  os nomes sao ligacoes consultaveis.
+- A ficha de uma sala mostra todos os equipamentos fisicamente na sala,
+  incluindo os que estao nos armarios, e todos os armarios da sala.
+- A ficha de um armario mostra a sala a que pertence e todos os equipamentos
+  guardados nele. Cada equipamento e a sala continuam consultaveis por ligacao.
+- Ambos os perfis podem consultar pessoas com equipamentos atualmente
+  atribuidos, a contagem de atribuicoes ativas e os equipamentos associados.
+  O acesso a esta consulta nao concede permissao para administrar contas.
+- O Administrador pode consultar o historico completo de atribuicoes de uma
+  pessoa; Professor ve apenas as atribuicoes ainda abertas.
+
+11. ATRIBUICOES, ALERTAS E DEVOLUCOES
+
+- A pagina Atribuicao tem separadores para criar uma atribuicao e consultar
+  todas as atribuicoes abertas, destinatarios, datas, prazos e duracao.
+- Se a pessoa ja tiver dois equipamentos ativos, apresentar um alerta de que
+  a nova atribuicao excedera dois. O alerta e informativo e nunca impede a
+  operacao; nao existe limite maximo de atribuicoes por pessoa.
+- A pagina Devolucao mantem o formulario de devolucao e oferece ao
+  Administrador um separador para consultar devolucoes historicas, com
+  equipamento, destinatario, datas, duracao e pessoa que recebeu.
+- Os separadores e ligacoes de consulta devem funcionar para ambos os perfis,
+  respeitando os limites de historico definidos acima.
