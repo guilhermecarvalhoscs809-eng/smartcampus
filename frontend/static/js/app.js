@@ -7,8 +7,12 @@
  const href=(p,id='')=>location.protocol==='file:'?'login.html?page='+encodeURIComponent(p)+(id?'&id='+encodeURIComponent(id):''):(config.routes?.[p]||p+'.html')+(id?'?id='+encodeURIComponent(id):'');
  const seed=integrated?JSON.parse($('#server-data')?.textContent||'null'):window.SMARTCAMPUS_SEED;
  let state,actor,errorStorage=false;const editing=new URLSearchParams(location.search).get('id')||'';
+ // Em modo Flask, lê #server-data e SMARTCAMPUS_CONFIG injetados pelo template Jinja.
+ // O servidor deve filtrar os arrays por permissão e fornecer currentUser mesmo que utilizadores esteja filtrado.
  function read(){if(integrated){state=Object.fromEntries(['salas','armarios','equipamentos','utilizadores','destinatarios','atribuicoes','avarias','transferencias','eventos','logs'].map(k=>[k,Array.isArray(seed?.[k])?M.copy(seed[k]):[]]));actor=config.currentUserId;if(config.currentUser&&!state.utilizadores.some(u=>u.id===actor))state.utilizadores.push(M.copy(config.currentUser));return;}try{const saved=JSON.parse(localStorage.getItem(key)||'null');state=saved?.schema===3?saved.state:M.copy(seed);actor=sessionStorage.getItem(sessionKey);}catch{state=M.copy(seed);actor=null;errorStorage=true;}}
+ // Persistência exclusiva da demonstração local. Em modo Flask, as alterações são guardadas pela API.
  function save(s){if(integrated)throw Error('Esta ação necessita do servidor.');localStorage.setItem(key,JSON.stringify({schema:3,state:s}));state=s;}
+ // Auditoria local exclusiva da demonstração; em produção, o Flask regista consultas e operações no servidor.
  function log(action,obj,result='Sucesso',reason='',protect=false){if(integrated)return;const next=M.copy(state);M.audit(next,actor,action,obj,result,null,null,reason,protect);save(next);}
  read();
  const user=()=>M.user(state,actor),admin=()=>user()?.perfil==='Administrador',allow=p=>M.allowed(state,actor,p);
@@ -33,6 +37,7 @@
  const search=(extra='')=>`<form class="search card" id="filters">${field('pesquisa','Pesquisar',{required:false})}${extra}<div class="filter-actions"><button class="btn">Filtrar</button></div></form><p id="count" role="status"></p><div id="results"></div>`;
  const equipmentList=()=>state.equipamentos.map(e=>[e.id,e.codigo+' · '+e.nome]);
  function destination(selected=''){return sel('id_sala','Sala de destino',state.salas.filter(s=>s.id!=='REP'),selected)+sel('id_armario','Armário nessa sala (opcional)',[], '',false);}
+ // Constrói o ecrã a partir dos dados recebidos do servidor; os formulários identificam operações por data-kind.
  function view(){
   if(page==='dashboard')return notice('Perfil '+user().perfil+' · Todas as operações ficam registadas na auditoria.')+`<div class="stats">${[['Equipamentos',state.equipamentos.length],['Em utilização',state.atribuicoes.filter(a=>!a.fim).length],['Avariados',state.equipamentos.filter(e=>e.estado==='Avariado').length],['Na Sala de Reparação',state.equipamentos.filter(e=>M.room(state,e)==='REP').length]].map(([t,n])=>`<div class="card stat"><div><span>${t}</span><strong>${n}</strong></div></div>`).join('')}</div>`+card('Operações',`<div class="actions">${link('equipamentos','Consultar equipamentos')}${link('avaria','Registar avaria')}${link('transferencia','Transferir')}${link('logs','Consultar auditoria')}</div>`)+card('Equipamentos avariados',table(['Equipamento','Localização'],state.equipamentos.filter(e=>e.estado==='Avariado').map(e=>[esc(e.nome),esc(M.localName(state,e))])));
   if(page==='equipamentos')return `<div class="actions">${link('registar-equipamento','Novo equipamento')}</div>`+search();
@@ -50,6 +55,7 @@
   return notice('Página indisponível.');
  }
  function loginView(){return `<main class="login-shell"><section class="login-art">${brand}<div><h1>Bem-vindo ao SmartCampus</h1><p>Equipamentos e espaços da ETPM</p></div></section><section class="login-panel"><form id="login-form" class="login-box" novalidate>${brand}<h2>Iniciar sessão</h2><p>Acesso exclusivo a Professores e Administradores.</p><div id="form-error" class="form-error" role="alert" tabindex="-1" hidden></div>${field('email','Email ETPM',{type:'email'})}${field('password','Palavra-passe',{type:'password'})}<button class="btn" type="submit">Entrar</button><details><summary>Contas de demonstração</summary><p>Professor: Antonio.correia@etpm.pt</p><p>Administrador: admin.demo@etpm.pt</p><p>Palavra-passe para ambos: demo1234</p></details><p class="login-note">Demonstração local. Não introduza a palavra-passe real da escola. Não existe ligação às contas escolares.</p></form></section></main>`;}
+ // Ponto de entrada da página. No modo integrado, o Flask fornece a sessão e a rota real de login; este login é apenas demonstração.
  function render(){document.title=(titles[page]||'SmartCampus')+' · SmartCampus';if(errorStorage){$('#root').innerHTML=notice('O armazenamento local está indisponível. Abra num servidor local e permita o armazenamento para utilizar a demonstração.');return;}
   if(integrated&&(!user()||page==='login')){$('#root').innerHTML=notice('O backend deve fornecer uma sessão autenticada e a página de login.');return;}
   if(page!=='login'&&!user()){if(!integrated)sessionStorage.removeItem(sessionKey);location.replace(href('login'));return;}
@@ -59,7 +65,9 @@
   bind();
  }
  function showError(f,msg,el){const box=f.querySelector('.form-error');box.textContent=msg;box.hidden=false;if(el){el.setAttribute('aria-invalid','true');el.setAttribute('aria-describedby','form-error');el.focus();}else box.focus();}
+ // Validação de UX no browser, não de segurança. Repetir todas as validações e permissões no Flask.
  function valid(f){f.querySelector('.form-error').hidden=true;f.querySelectorAll('[aria-invalid]').forEach(e=>{e.removeAttribute('aria-invalid');e.removeAttribute('aria-describedby')});for(const e of f.querySelectorAll('input,select,textarea')){if(e.type==='text'||e.type==='email'||e.tagName==='TEXTAREA')e.value=e.value.trim();if(!e.checkValidity()){showError(f,'Verifique o campo '+(f.querySelector(`label[for="${e.id}"]`)?.textContent||e.name)+'.',e);return false;}}return true;}
+ // Filtra no browser os arrays recebidos do Flask e desenha tabelas; a API continua responsável por limitar os dados autorizados.
  function refresh(){if(!$('#filters'))return;const q=Object.fromEntries(new FormData($('#filters'))),term=(q.pesquisa||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();let head,rows;
   const match=o=>JSON.stringify(o).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().includes(term);
   if(page==='equipamentos'){head=['Equipamento','Estado','Localização','Ações'];rows=state.equipamentos.filter(e=>match([e.codigo,e.nome,e.estado,M.localName(state,e)])).map(e=>[esc(e.codigo)+'<small>'+esc(e.nome)+'</small>',esc(M.inUse(state,e.id)?e.estado+' · Em utilização':e.estado),esc(M.localName(state,e)),`<div class="row-actions">${link('registar-equipamento','Ficha',e.id)}${M.available(state,e)?link('assignacao','Atribuir',e.id):''}${e.estado!=='Avariado'?link('avaria','Avaria',e.id):''}${link('transferencia','Transferir',e.id)}</div>`]);}
@@ -72,10 +80,15 @@
  function dependent(){const sala=$('#id_sala'),arm=$('#id_armario');if(sala&&arm){const previous=arm.value;arm.innerHTML=opts([['','Sem armário'],...state.armarios.filter(a=>a.id_sala===sala.value).map(a=>[a.id,a.nome])],previous);}
   if(page==='transferencia'&&$('#id_objeto')){const isArm=$('#tipo_objeto').value==='armario',obj=M.get(state,isArm?'armarios':'equipamentos',$('#id_objeto').value);$('#origin').textContent=obj?'Origem: '+(isArm?name('salas',obj.id_sala):M.localName(state,obj)):'Selecione um objeto.';arm.disabled=isArm;if(isArm)arm.value='';const out=obj&&!isArm&&M.room(state,obj)==='REP';$('#operational-field').hidden=!out;$('#operacional').required=!!out;if(!out)$('#operacional').value='';}
  }
+ // Envia as operações mapeadas em SMARTCAMPUS_CONFIG.operations como POST JSON same-origin com CSRF.
+ // Cada rota Flask deve exigir sessão/permissão, validar de novo e responder JSON {message}; use 4xx/5xx em erro.
+ // data contém os campos do formulário, incluindo id para edição; nunca aceite ator/perfil do cliente como autoridade.
  async function dispatch(kind,data){
   if(integrated){const endpoint=config.operations?.[kind];if(!endpoint)throw Error('Operação ainda não ligada ao backend.');const response=await fetch(endpoint,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRFToken':config.csrfToken||''},body:JSON.stringify(data)});const result=await response.json().catch(()=>null);if(response.redirected||!response.ok||!result)throw Error(result?.message||'O servidor não confirmou a operação.');return result.message||'Operação guardada.';}
   read();const result=M.execute(state,actor,kind,data);save(result.state);if(!result.ok)throw Error(result.message);return result.message;
  }
+ // Liga formulários e ações à interface. O login de produção deve ser tratado pela rota/template Flask, não por M.login.
+ // As ações de conta/log também passam por dispatch e usam as operações estadoConta e ocultarLog.
  function bind(){
   if(page==='login'){$('#login-form').addEventListener('submit',e=>{e.preventDefault();const f=e.target;if(!valid(f)){try{read();log('Login recusado','Sessão','Recusado','Campos obrigatórios ou formato inválido',true);}catch{}return;}try{read();const next=M.copy(state),id=M.login(next,$('#email').value,$('#password').value);save(next);if(!id){showError(f,'Conta ETPM ativa e credenciais válidas são necessárias.');return;}sessionStorage.setItem(sessionKey,id);location.href=href('dashboard');}catch{showError(f,'Não foi possível guardar a sessão. Verifique o armazenamento do navegador.');}});return;}
   $('#logout').addEventListener('click',async()=>{try{if(integrated){if(!config.operations?.logout)throw Error('A saída ainda não está ligada ao backend.');await dispatch('logout',{});}else{try{read();log('Logout','Sessão','Sucesso','',true);}catch{alert('Sessão terminada. Não foi possível guardar o log: verifique o espaço disponível no navegador.');}finally{sessionStorage.removeItem(sessionKey);}}location.href=href('login');}catch(e){alert(e.message);}});

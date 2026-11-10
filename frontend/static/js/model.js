@@ -9,25 +9,47 @@
  const emailOK=x=>/^[^\s@]+@etpm\.pt$/i.test(clean(x));
  const pages={Professor:['dashboard','equipamentos','salas','armarios','assignacao','devolucao','avaria','transferencia'],Administrador:['dashboard','equipamentos','registar-equipamento','salas','armarios','assignacao','devolucao','avaria','transferencia','utilizacoes','eventos','logs','utilizadores','criar-utilizador']};
  const actions={equipamento:'registar-equipamento',sala:'admin',armario:'admin',conta:'admin',estadoConta:'admin',ocultarLog:'admin',atribuicao:'assignacao',devolucao:'devolucao',avaria:'avaria',transferencia:'transferencia'};
+ // Resolve a conta ativa; em produção, o Flask obtém a identidade da sessão, nunca de um ID enviado pelo browser.
  const user=(s,id)=>s.utilizadores.find(u=>u.id===id&&u.estado==='Ativo'&&emailOK(u.email)&&pages[u.perfil]);
+ // Matriz usada para controlar a interface. Cada rota Flask tem de voltar a verificar a permissão no servidor.
  const allowed=(s,id,key)=>!!pages[user(s,id)?.perfil]?.includes(key);
+ // Procura um registo pelo ID; os IDs recebidos em POST devem ser validados contra a base de dados.
  const get=(s,collection,id)=>s[collection].find(x=>x.id===id);
+ // Indica se existe atribuição sem devolução; usar esta regra ao impedir operações incompatíveis.
  const inUse=(s,id)=>s.atribuicoes.find(a=>a.id_equipamento===id&&!a.fim);
+ // Equipamento só pode ser atribuído se estiver operacional e sem atribuição ativa.
  const available=(s,e)=>e.estado==='Em funcionamento'&&!inUse(s,e.id);
+ // Resolve a sala efetiva de um equipamento, incluindo os que estão dentro de armários.
  const room=(s,e)=>e.tipo_local==='sala'?e.id_local:get(s,'armarios',e.id_local)?.id_sala;
+ // Nome de localização apresentado na interface; não substitui validação de destino na API.
  const localName=(s,e)=>(e.tipo_local==='armario'?(get(s,'armarios',e.id_local)?.nome+' · '):'')+(get(s,'salas',room(s,e))?.nome||'Sem sala');
+ // Apenas auditoria da demonstração. No Flask, registar ator da sessão, hora do servidor e snapshots na mesma transação da alteração.
+ // Preservar campos compatíveis: id, data, ator, nome, perfil, acao, objeto, resultado, antes, depois, motivo e protegido.
  function audit(s,actor,acao,objeto,resultado='Sucesso',antes=null,depois=null,motivo='',protectedEntry=false){
   const u=s.utilizadores.find(u=>u.id===actor);
   const entry={id:uid('LOG'),data:new Date().toISOString(),ator:actor||null,nome:u?.nome||'Não autenticado',perfil:u?.perfil||'—',acao,objeto:clean(objeto),resultado,antes:copy(antes),depois:copy(depois),motivo:clean(motivo),protegido:protectedEntry};
   s.logs.push(entry);return entry;
  }
+ // Evento de demonstração. Em produção, gravá-lo atomicamente com a operação e usar a identidade autenticada do servidor.
  function event(s,actor,tipo,objeto,descricao){s.eventos.push({id:uid('EV'),data:new Date().toISOString(),tipo,objeto,descricao,autor:actor});}
+ // Login simulado apenas para testes locais (palavra-passe partilhada); não usar esta função nem estes dados no Flask.
+ // A rota real deve autenticar a conta, criar sessão/cookie e registar sucesso ou recusa sem guardar palavra-passe/email submetidos.
  function login(s,email,password){
   const found=s.utilizadores.find(u=>norm(u.email)===norm(email));
   const ok=emailOK(email)&&found&&user(s,found.id)&&password==='demo1234';
   audit(s,ok?found.id:null,'Login','Sessão',ok?'Sucesso':'Recusado',null,null,ok?'':'Credenciais inválidas ou conta indisponível',true);
   return ok?found.id:null;
  }
+ // Simula as operações da aplicação e serve de especificação funcional para os handlers Flask.
+ // Campos por operação (além de id opcional nas criações/edições):
+ // equipamento: codigo, nome, serie, tipo, id_sala, id_armario;
+ // sala: nome; armario: nome, id_sala; conta: nome, email, perfil;
+ // estadoConta: id, estado, motivo; atribuicao: id_equipamento, id_destinatario, data, prazo;
+ // devolucao: id_atribuicao, data; avaria: id_equipamento, motivo, data;
+ // transferencia: tipo_objeto, id_objeto, id_sala, id_armario, operacional, data;
+ // ocultarLog: id, motivo. Logout é uma rota separada e recebe {}.
+ // O input usa os nomes dos formulários; consultar documentos/INTEGRACAO.md para as respostas e o contrato HTTP.
+ // Reimplementar as regras abaixo no backend com transação, sessão, autorização e auditoria no servidor; não confiar neste modelo.
  function execute(source,actor,kind,input){
   const s=copy(source),d=Object.fromEntries(Object.entries(input).map(([k,v])=>[k,typeof v==='string'?v.trim():v]));
   const u=user(s,actor),admin=u?.perfil==='Administrador';
