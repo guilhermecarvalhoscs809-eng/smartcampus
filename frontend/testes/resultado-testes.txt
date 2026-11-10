@@ -1,0 +1,13 @@
+OK Só contas ETPM ativas e dois perfis podem entrar
+OK Professor não cria nem desativa contas
+OK Conta desativada e email duplicado não entram nem duplicam
+OK Email é imutável e último admin preservado
+OK Avaria move e audita numa operação atómica
+OK Falta de Sala de Reparação ou atribuição ativa impede avaria parcial
+OK Saída de REP exige destino e confirmação e muda estado
+OK Transferências rejeitam armário incompatível e origem igual
+OK Transferir armário preserva associação dos equipamentos
+OK Atribuição não duplica e devolução exige cronologia
+OK Remoção lógica preserva original e gera log protegido
+OK Valores HTML são apenas dados e não entram nos logs como passwords
+12 testes passaram.

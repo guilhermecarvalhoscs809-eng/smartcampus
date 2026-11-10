@@ -1,0 +1,10 @@
+Revisão rápida com Claude — 05/11/2026
+Conversa: https://claude.ai/chat/0720f4c5-6ad5-46a5-9fd9-55ad58bafb30
+
+Código atual de app.js, model.js, README e integração enviado para revisão.
+Sugestões aplicadas: sessão atual independente da lista filtrada de utilizadores; normalização de arrays ausentes; recarregar GET após remoção de logs em modo integrado; Cancelar fecha diálogos; ?page restrito a file://; alterações noutro separador não apagam formulários em curso.
+Melhoria adicional: saída termina sessão mesmo se falhar escrita do log.
+
+Decisões mantidas: auditoria de consultas e recusas pelo requisito do grupo. Não guardar o email escrito em tentativas falhadas, para não registar dados ou palavras-passe colocados no campo errado. O Claude considerou esta decisão defensável e recomendou documentá-la para a equipa de backend.
+
+Notas finais do Claude: retenção, concorrência e proteção dos logs são responsabilidade do backend; confirmar com o docente matriz de permissões e avaria durante utilização. Revisão externa não substitui testes nem validação do docente.
